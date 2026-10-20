@@ -36,9 +36,10 @@ jobs:
           gradle-version: '8.9'
 
       - name: Configurar Android SDK
-            - name: Aceitar licenças do Android SDK
         run: yes | sdkmanager --licenses
         uses: android-actions/setup-android@v3
+              - name: Aceitar licenças do Android SDK
+        run: yes | sdkmanager --licenses
 
       - name: Instalar plataforma Android necessária
         run: sdkmanager "platforms;android-35" "build-tools;35.0.0"
