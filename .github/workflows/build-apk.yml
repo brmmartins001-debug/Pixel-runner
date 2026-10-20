@@ -1,28 +1,33 @@
+
 name: Build Pixel Runner APK
 
 on:
   workflow_dispatch:
   push:
-    branches: [main]
+    branches:
+      - main
 
 permissions:
   contents: read
-  actions: read
 
 jobs:
   build:
+    name: Construir APK
     runs-on: ubuntu-latest
+
     steps:
-      - name: Baixar repositório
+      - name: Baixar repositorio
         uses: actions/checkout@v4
 
-      - name: Extrair projeto Android do ZIP
+      - name: Extrair projeto Android
         run: |
-          mkdir android-project
+          mkdir -p android-project
           unzip PixelRunnerAndroid-Projeto.zip -d android-project
 
-      - name: Usar o HTML original sem modificá-lo
-        run: cp pixel-runner-1.html android-project/PixelRunnerAndroid/app/src/main/assets/index.html
+      - name: Copiar jogo original sem modificar
+        run: |
+          mkdir -p android-project/PixelRunnerAndroid/app/src/main/assets
+          cp pixel-runner-1.html android-project/PixelRunnerAndroid/app/src/main/assets/index.html
 
       - name: Configurar Java
         uses: actions/setup-java@v4
@@ -30,28 +35,27 @@ jobs:
           distribution: temurin
           java-version: '17'
 
+      - name: Configurar Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Aceitar licencas do Android SDK
+        run: yes | sdkmanager --licenses
+
+      - name: Instalar componentes Android
+        run: sdkmanager "platforms;android-35" "build-tools;35.0.0"
+
       - name: Configurar Gradle
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.9'
 
-      - name: Configurar Android SDK
-        run: yes | sdkmanager --licenses
-        uses: android-actions/setup-android@v3
-              - name: Aceitar licenças do Android SDK
-        run: yes | sdkmanager --licenses
-
-      - name: Instalar plataforma Android necessária
-        run: sdkmanager "platforms;android-35" "build-tools;35.0.0"
-
       - name: Compilar APK
         working-directory: android-project/PixelRunnerAndroid
         run: gradle assembleDebug
 
-      - name: Disponibilizar APK para download
+      - name: Disponibilizar APK
         uses: actions/upload-artifact@v4
         with:
           name: Pixel-Runner-Fendas-APK
           path: android-project/PixelRunnerAndroid/app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
-          
